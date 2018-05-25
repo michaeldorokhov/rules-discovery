@@ -15,11 +15,11 @@ public class EventLog {
     }
 
     public List<String> getUniqueEventNames() {
-        List<String> names = new ArrayList<String>();
+        List<String> names = new ArrayList<>();
 
         for(Case caseInstance : this.cases) {
-            for(Event event : caseInstance.getEvents()) {
-                if(!names.contains(event.getName())) {
+            for (Event event : caseInstance.getEvents()) {
+                if (!names.contains(event.getName())) {
                     names.add(event.getName());
                 }
             }
