@@ -19,9 +19,6 @@ public class OfflineRuleDiscoveryEngine {
                 for(String eventNameB : uniqueEventNames) {
                     if(eventNameA.equals(eventNameB)) continue;
 
-                    //
-                    // Response
-                    //
                     List<Integer> indexesA = new ArrayList<>();
                     caseInstance.getEvents().stream().
                             filter(x -> x.getName().equals(eventNameA)).
@@ -34,6 +31,10 @@ public class OfflineRuleDiscoveryEngine {
 
                     for(Integer indexA : indexesA)
                         for (Integer indexB : indexesB) {
+
+                            //
+                            // Response
+                            //
                             if (indexA < indexB) {
                                 Rule newRule = new Rule(RuleEnum.RESPONSE,
                                                caseInstance.getEvents().get(indexA).getName(),
@@ -42,6 +43,8 @@ public class OfflineRuleDiscoveryEngine {
                                 if (rules.contains(newRule)) rules.get(rules.indexOf(newRule)).incrementFrequency();
                                 else rules.add(newRule);
                             }
+
+                            // TODO: add other rules discovery
                         }
                 }
             }

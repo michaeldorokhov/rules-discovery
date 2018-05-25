@@ -54,7 +54,7 @@ public class EventLogParser {
             eventName = caseString[3];
 
             payload = new HashMap<>();
-            for( int i = 3; i < caseString.length; i++) payload.put(attributeNames.get(i-3), caseString[i]);
+            for( int i = 4; i < caseString.length; i++) payload.put(attributeNames.get(i-4), caseString[i]);
 
             if (events.containsKey(caseID)) {
                 events.get(caseID).add(new Event(eventID, eventName, payload, date));
