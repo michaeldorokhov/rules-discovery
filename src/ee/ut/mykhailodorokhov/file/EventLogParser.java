@@ -36,7 +36,8 @@ public class EventLogParser {
         String line;
 
         String caseID;
-        String eventID;
+        Integer eventID;
+        String eventName;
         Date date;
         Map<String, String> payload;
 
@@ -45,18 +46,20 @@ public class EventLogParser {
 
             caseID = caseString[0];
 
-            eventID = caseString[1];
+            eventID = Integer.parseInt(caseString[1]);
 
             SimpleDateFormat parser = new SimpleDateFormat(dateFormat);
             date = parser.parse(caseString[2]);
+
+            eventName = caseString[3];
 
             payload = new HashMap<>();
             for( int i = 3; i < caseString.length; i++) payload.put(attributeNames.get(i-3), caseString[i]);
 
             if (events.containsKey(caseID)) {
-                events.get(caseID).add(new Event(eventID, payload, date));
+                events.get(caseID).add(new Event(eventID, eventName, payload, date));
             } else {
-                events.put(caseID, new ArrayList<>( Arrays.asList( new Event(eventID, payload, date) ) ));
+                events.put(caseID, new ArrayList<>( Arrays.asList( new Event(eventID, eventName, payload, date) ) ));
             }
         }
         fileReader.close();
