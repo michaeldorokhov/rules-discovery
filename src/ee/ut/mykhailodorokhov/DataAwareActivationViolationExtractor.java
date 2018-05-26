@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DataAwareActivationViolationExtractor {
-    public List<Snapshot> extract(EventLog log, List<Rule> rules) {
+    public List<LabeledFeatureVector> extract(EventLog log, List<Rule> rules) {
 
-        List<Snapshot> snapshots = new ArrayList<>();
+        List<LabeledFeatureVector> snapshots = new ArrayList<>();
 
         for(Case caseInstance : log.getCases()) {
             for (Rule rule : rules) {
@@ -25,14 +25,12 @@ public class DataAwareActivationViolationExtractor {
 
                 for (Integer indexA : indexesA) {
 
-                    //
                     // Response
-                    //
                     if (indexesB.isEmpty() || indexesB.stream().noneMatch(x -> x > indexA))
-                        snapshots.add(new Snapshot(caseInstance.getEvents().get(indexA).getPayload(), false));
+                        snapshots.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), false));
 
                     if (!indexesB.isEmpty() && indexesB.stream().anyMatch(x -> x > indexA))
-                        snapshots.add(new Snapshot(caseInstance.getEvents().get(indexA).getPayload(), true));
+                        snapshots.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), true));
 
                     // TODO: add processing for other rules
                 }

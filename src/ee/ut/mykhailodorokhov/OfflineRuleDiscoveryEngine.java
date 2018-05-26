@@ -19,21 +19,12 @@ public class OfflineRuleDiscoveryEngine {
                 for(String eventNameB : uniqueEventNames) {
                     if(eventNameA.equals(eventNameB)) continue;
 
-                    List<Integer> indexesA = new ArrayList<>();
-                    caseInstance.getEvents().stream().
-                            filter(x -> x.getName().equals(eventNameA)).
-                            forEachOrdered(x -> indexesA.add(caseInstance.getEvents().indexOf(x)));
-
-                    List<Integer> indexesB = new ArrayList<>();
-                    caseInstance.getEvents().stream().
-                            filter(x -> x.getName().equals(eventNameB)).
-                            forEachOrdered(x -> indexesB.add(caseInstance.getEvents().indexOf(x)));
+                    List<Integer> indexesA = caseInstance.getEventIndexesList(eventNameA);
+                    List<Integer> indexesB = caseInstance.getEventIndexesList(eventNameB);
 
                     for(Integer indexA : indexesA) {
-
-                        //
+                        
                         // Response
-                        //
                         if (!indexesB.isEmpty() && indexesB.stream().anyMatch(x -> x > indexA)) {
                             Rule newRule = new Rule(RuleEnum.RESPONSE, eventNameA, eventNameB);
 

@@ -2,13 +2,12 @@ package ee.ut.mykhailodorokhov;
 
 import ee.ut.mykhailodorokhov.data.EventLog;
 import ee.ut.mykhailodorokhov.data.Rule;
-import ee.ut.mykhailodorokhov.data.Snapshot;
+import ee.ut.mykhailodorokhov.data.LabeledFeatureVector;
 import ee.ut.mykhailodorokhov.file.EventLogParser;
 
 import java.awt.FileDialog;
 import java.awt.Frame;
 import java.io.File;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,7 +41,7 @@ public class App {
         rules.sort(Comparator.comparing(Rule::getFrequency).reversed());
 
         DataAwareActivationViolationExtractor extractor = new DataAwareActivationViolationExtractor();
-        List<Snapshot> data = extractor.extract(log, rules.stream().filter(x -> x.getFrequency() > 3).collect(Collectors.toList()));
+        List<LabeledFeatureVector> data = extractor.extract(log, rules.stream().filter(x -> x.getFrequency() > 3).collect(Collectors.toList()));
     }
 
     private static File[] openFile(String message)
