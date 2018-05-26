@@ -18,4 +18,15 @@ public class LabeledFeatureVector {
     public Map<String, String> getAttributes() { return this.attributes; }
 
     public boolean isActivation() { return this.outcome; }
+
+    @Override
+    public String toString() {
+        StringBuilder attributesString = new StringBuilder();
+        for (Map.Entry<String, String> entry : this.attributes.entrySet())
+        {
+            attributesString.append(entry.getKey() + ":" + entry.getValue() + " ");
+        }
+
+        return this.rule.toString() + " - { " + attributesString.toString() + "} - " + this.outcome;
+    }
 }

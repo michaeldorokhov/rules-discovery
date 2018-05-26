@@ -27,6 +27,11 @@ public class Rule {
     public String getEventB() { return this.eventB; }
 
     @Override
+    public String toString() {
+        return this.ruleType.toString() + "(" + this.eventA + ", " + this.eventB + ")";
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
