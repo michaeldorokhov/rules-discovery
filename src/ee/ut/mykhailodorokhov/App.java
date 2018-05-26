@@ -3,6 +3,7 @@ package ee.ut.mykhailodorokhov;
 import ee.ut.mykhailodorokhov.data.EventLog;
 import ee.ut.mykhailodorokhov.data.Rule;
 import ee.ut.mykhailodorokhov.data.LabeledFeatureVector;
+import ee.ut.mykhailodorokhov.data.RuleSet;
 import ee.ut.mykhailodorokhov.file.EventLogParser;
 
 import java.awt.FileDialog;
@@ -36,11 +37,11 @@ public class App {
         EventLog log = parser.parseFromCSV(selectedFile);
 
         OfflineRuleDiscoveryEngine engine = new OfflineRuleDiscoveryEngine();
-        List<Rule> rules = engine.discoverRules(log);
+        RuleSet rules = engine.discoverRules(log);
 
-        rules.sort(Comparator.comparing(Rule::getFrequency).reversed());
+        rules.getRules().sort(Comparator.comparing(Rule::getFrequency).reversed());
 
-        List<LabeledFeatureVector> data = engine.extractLabeledFeatureVectors(log, rules.stream().filter(x -> x.getFrequency() > 3).collect(Collectors.toList()));
+        List<LabeledFeatureVector> data = engine.extractLabeledFeatureVectors(log, rules);
     }
 
     private static File[] openFile(String message)

@@ -28,7 +28,7 @@ public class EventLogParser {
         for( int i = 3; i < header.length; i++) attributeNames.add(header[i]);
 
         // Reading the body of the CSV file
-        
+
         Map<String, List<Event>> events = new HashMap<>();
 
         String line;
