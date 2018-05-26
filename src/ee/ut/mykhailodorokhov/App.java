@@ -37,7 +37,7 @@ public class App {
         EventLog log = parser.parseFromCSV(selectedFile);
 
         OfflineRuleDiscoveryEngine engine = new OfflineRuleDiscoveryEngine();
-        RuleSet rules = engine.discoverRules(log);
+        RuleSet rules = engine.discoverRules(log, 1);
 
         rules.getRules().sort(Comparator.comparing(Rule::getFrequency).reversed());
 
