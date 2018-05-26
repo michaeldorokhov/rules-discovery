@@ -26,23 +26,13 @@ public class DataAwareActivationViolationExtractor {
                 for (Integer indexA : indexesA) {
 
                     //
-                    // Response violation
+                    // Response
                     //
                     if (indexesB.isEmpty() || indexesB.stream().noneMatch(x -> x > indexA))
                         snapshots.add(new Snapshot(caseInstance.getEvents().get(indexA).getPayload(), false));
 
-
-                    for (Integer indexB : indexesB) {
-
-                        //
-                        // Response Activation
-                        //
-                        if (indexA < indexB) {
-                            snapshots.add(new Snapshot(caseInstance.getEvents().get(indexA).getPayload(), true));
-                        }
-
-
-                    }
+                    if (!indexesB.isEmpty() && indexesB.stream().anyMatch(x -> x > indexA))
+                        snapshots.add(new Snapshot(caseInstance.getEvents().get(indexA).getPayload(), true));
 
                     // TODO: add processing for other rules
                 }

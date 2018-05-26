@@ -29,23 +29,20 @@ public class OfflineRuleDiscoveryEngine {
                             filter(x -> x.getName().equals(eventNameB)).
                             forEachOrdered(x -> indexesB.add(caseInstance.getEvents().indexOf(x)));
 
-                    for(Integer indexA : indexesA)
-                        for (Integer indexB : indexesB) {
+                    for(Integer indexA : indexesA) {
 
-                            //
-                            // Response
-                            //
-                            if (indexA < indexB) {
-                                Rule newRule = new Rule(RuleEnum.RESPONSE,
-                                               caseInstance.getEvents().get(indexA).getName(),
-                                               caseInstance.getEvents().get(indexB).getName());
+                        //
+                        // Response
+                        //
+                        if (!indexesB.isEmpty() && indexesB.stream().anyMatch(x -> x > indexA)) {
+                            Rule newRule = new Rule(RuleEnum.RESPONSE, eventNameA, eventNameB);
 
-                                if (rules.contains(newRule)) rules.get(rules.indexOf(newRule)).incrementFrequency();
-                                else rules.add(newRule);
-                            }
-
-                            // TODO: add other rules discovery
+                            if (rules.contains(newRule)) rules.get(rules.indexOf(newRule)).incrementFrequency();
+                            else rules.add(newRule);
                         }
+
+                        // TODO: add other rules discovery
+                    }
                 }
             }
 
