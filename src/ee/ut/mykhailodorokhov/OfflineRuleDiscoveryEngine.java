@@ -1,6 +1,7 @@
 package ee.ut.mykhailodorokhov;
 
 import ee.ut.mykhailodorokhov.data.*;
+import ee.ut.mykhailodorokhov.helpers.ListHelper;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -44,12 +45,10 @@ public class OfflineRuleDiscoveryEngine {
 
                         // Alternate Response
                         if (!indexesB.isEmpty() &&
-                            indexesB.stream().anyMatch(x -> indexA < x) &&
-                            indexesA.stream().noneMatch(x -> indexA < x && x < indexesB.stream().min(Comparator.comparing(Integer::valueOf)).get())) {
-
+                                indexesB.stream().anyMatch(x -> indexA < x) &&
+                                indexesA.stream().noneMatch(x -> indexA < x && x < ListHelper.min(indexesB))) {
                             Rule newRule = new Rule(RuleEnum.ALTERNATE_RESPONSE, eventNameA, eventNameB);
                             rules.addRuleOccurence(newRule);
-
                         }
 
                         // TODO: add other rules discovery
@@ -90,15 +89,14 @@ public class OfflineRuleDiscoveryEngine {
                                 labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), false));
                             break;
                         case ALTERNATE_RESPONSE:
-                            if (!indexesB.isEmpty() && indexesB.stream().anyMatch(x -> indexA < x)
-                                    && indexesA.stream().noneMatch(x -> indexA < x && x < indexesB.stream().min(Comparator.comparing(Integer::valueOf)).get()))
+                            if (!indexesB.isEmpty() && indexesB.stream().anyMatch(x -> indexA < x) &&
+                                    indexesA.stream().noneMatch(x -> indexA < x && x < ListHelper.min(indexesB)))
                                 labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), true));
 
-                            if (indexesB.isEmpty() || indexesB.stream().noneMatch(x -> indexA < x)
-                                    ||
-                                    (indexesB.stream().anyMatch(x -> indexA < x)
-                                    && indexesA.stream().anyMatch(x -> indexA < x && x < indexesB.stream().min(Comparator.comparing(Integer::valueOf)).get()) ))
-                                    labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), false));
+                            if (indexesB.isEmpty() || indexesB.stream().noneMatch(x -> indexA < x) ||
+                                    (indexesB.stream().anyMatch(x -> indexA < x) &&
+                                    indexesA.stream().anyMatch(x -> indexA < x && x < ListHelper.min(indexesB))))
+                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), false));
                             break;
 
                         // TODO: add processing for other rules
