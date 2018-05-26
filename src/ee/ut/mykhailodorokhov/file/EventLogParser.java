@@ -18,9 +18,8 @@ public class EventLogParser {
         FileReader fileReader = new FileReader(eventLogFile);
         BufferedReader bufferedReader = new BufferedReader(new FileReader(eventLogFile));
 
-        //
         // Reading header
-        //
+
         String[] header = bufferedReader.readLine().split(this.splitCharacter);
 
         String dateFormat = header[2];
@@ -28,9 +27,8 @@ public class EventLogParser {
         List<String> attributeNames = new ArrayList<String>();
         for( int i = 3; i < header.length; i++) attributeNames.add(header[i]);
 
-        //
         // Reading the body of the CSV file
-        //
+        
         Map<String, List<Event>> events = new HashMap<>();
 
         String line;
@@ -64,9 +62,7 @@ public class EventLogParser {
         }
         fileReader.close();
 
-        //
         // Making list of cases out of the map with CaseID as keys
-        //
         List<Case> cases = new ArrayList<>();
         for(String caseName : events.keySet()) {
             cases.add(new Case(caseName, events.get(caseName)));

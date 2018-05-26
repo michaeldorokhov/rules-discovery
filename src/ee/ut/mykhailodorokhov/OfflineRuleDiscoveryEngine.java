@@ -57,15 +57,8 @@ public class OfflineRuleDiscoveryEngine {
         for (Case caseInstance : log.getCases()) {
             for (Rule rule : rules) {
 
-                List<Integer> indexesA = new ArrayList<>();
-                caseInstance.getEvents().stream().
-                        filter(x -> x.getName().equals(rule.getEventA())).
-                        forEachOrdered(x -> indexesA.add(caseInstance.getEvents().indexOf(x)));
-
-                List<Integer> indexesB = new ArrayList<>();
-                caseInstance.getEvents().stream().
-                        filter(x -> x.getName().equals(rule.getEventB())).
-                        forEachOrdered(x -> indexesB.add(caseInstance.getEvents().indexOf(x)));
+                List<Integer> indexesA = caseInstance.getEventIndexesList(rule.getEventA());
+                List<Integer> indexesB = caseInstance.getEventIndexesList(rule.getEventB());
 
                 for (Integer indexA : indexesA) {
 
