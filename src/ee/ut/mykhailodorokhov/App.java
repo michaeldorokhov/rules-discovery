@@ -40,8 +40,7 @@ public class App {
 
         rules.sort(Comparator.comparing(Rule::getFrequency).reversed());
 
-        DataAwareActivationViolationExtractor extractor = new DataAwareActivationViolationExtractor();
-        List<LabeledFeatureVector> data = extractor.extract(log, rules.stream().filter(x -> x.getFrequency() > 3).collect(Collectors.toList()));
+        List<LabeledFeatureVector> data = engine.extractLabeledFeatureVectors(log, rules.stream().filter(x -> x.getFrequency() > 3).collect(Collectors.toList()));
     }
 
     private static File[] openFile(String message)
