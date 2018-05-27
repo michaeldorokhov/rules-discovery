@@ -34,14 +34,23 @@ public class App {
         }
 
         EventLogParser parser = new EventLogParser();
+
+        // Parse tho opened file
         EventLog log = parser.parseFromCSV(selectedFile);
 
         OfflineRuleDiscoveryEngine engine = new OfflineRuleDiscoveryEngine();
+
+        // Discover rules
         RuleSet rules = engine.discoverRules(log, 1);
 
+        // Sort rules by frequency
         rules.getRules().sort(Comparator.comparing(Rule::getFrequency).reversed());
 
+        // Extract labeled feature vectors
         List<LabeledFeatureVector> data = engine.extractLabeledFeatureVectors(log, rules);
+
+        // Classify
+        engine.classify(rules, data);
     }
 
     private static File[] openFile(String message)
