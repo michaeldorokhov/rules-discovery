@@ -25,7 +25,7 @@ public class EventLogParser {
         String dateFormat = header[2];
 
         List<String> attributeNames = new ArrayList<String>();
-        for( int i = 3; i < header.length; i++) attributeNames.add(header[i]);
+        for( int i = 4; i < header.length; i++) attributeNames.add(header[i]);
 
         // Reading the body of the CSV file
 
