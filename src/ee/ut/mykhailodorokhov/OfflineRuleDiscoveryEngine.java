@@ -123,10 +123,11 @@ public class OfflineRuleDiscoveryEngine {
 
         for(Rule rule : rules.getRules()) {
             J48 tree = new J48();
-            String[] options = new String[2];
-            options[0] = "-U";
-            options[1] = "-B";
-            tree.setOptions(options);
+            StringBuilder options = new StringBuilder();
+            //options.append("-U");
+            options.append("-M 7");
+
+            tree.setOptions(options.toString().split(" "));
 
             Instances dataSet = WekaHelper.toWekaDataSet(rule, labeledFeatureVectors);
 
