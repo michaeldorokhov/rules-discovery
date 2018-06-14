@@ -4,17 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Case {
-    private String name;
+    private String id;
     private List<Event> events;
 
-    public Case(String name, List<Event> events) {
-        this.name = name;
+    public Case(String caseID, List<Event> events) {
+        this.id = caseID;
         this.events = events;
     }
 
-    public String getName() {
-        return this.name;
-    }
+    public String getId() { return this.id; }
 
     public List<Event> getEvents() {
         return this.events;

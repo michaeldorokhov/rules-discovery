@@ -11,9 +11,9 @@ import java.awt.Frame;
 import java.io.File;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class App {
+
     /**
      * Entry point.
      *
@@ -35,19 +35,24 @@ public class App {
 
         EventLogParser parser = new EventLogParser();
 
-        // Parse tho opened file
-        EventLog log = parser.parseFromCSV(selectedFile);
+        EventLog eventLog = null;
+
+        if (selectedFile.getName().contains(".xes"))
+            eventLog = parser.fromXES(selectedFile);
+
+        if (selectedFile.getName().contains(".csv"))
+            eventLog = parser.fromCSV(selectedFile);
 
         OfflineRuleDiscoveryEngine engine = new OfflineRuleDiscoveryEngine();
 
         // Discover rules
-        RuleSet rules = engine.discoverRules(log, 1);
+        RuleSet rules = engine.discoverRules(eventLog, 5);
 
         // Sort rules by frequency
         rules.getRules().sort(Comparator.comparing(Rule::getFrequency).reversed());
 
         // Extract labeled feature vectors
-        List<LabeledFeatureVector> data = engine.extractLabeledFeatureVectors(log, rules);
+        List<LabeledFeatureVector> data = engine.extractLabeledFeatureVectors(eventLog, rules);
 
         // Classify
         engine.classify(rules, data);

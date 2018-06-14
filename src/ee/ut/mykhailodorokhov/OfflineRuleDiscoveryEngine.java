@@ -121,22 +121,46 @@ public class OfflineRuleDiscoveryEngine {
 
     public void classify(RuleSet rules, List<LabeledFeatureVector> labeledFeatureVectors) throws Exception {
 
+        // Debug related code
+        int i = 0;
+        // Debug related code
+
         for(Rule rule : rules.getRules()) {
+
+            // Debug related code
+            System.out.println("=====================");
+            i++;
+            System.out.println(i + " - Rule: " + rule.toString());
+            // Debug related code
+
+            List<LabeledFeatureVector> relevantFeatureVectors =
+                    labeledFeatureVectors.stream().filter(x -> x.getRule().equals(rule)).collect(Collectors.toList());
+
+            Instances dataSet = null;
+
+            try {
+                dataSet = WekaHelper.toWekaDataSet(relevantFeatureVectors);
+            }
+            catch (Exception ex) {
+                System.out.println("Unary class. Skipped.");
+                continue;
+            }
+
+            int classIndex = relevantFeatureVectors.get(0).getAttributes().size();
+            dataSet.setClassIndex(classIndex);
+
+            dataSet.enumerateAttributes();
+
             J48 tree = new J48();
+
             StringBuilder options = new StringBuilder();
             //options.append("-U");
             options.append("-M 7");
-
             tree.setOptions(options.toString().split(" "));
-
-            Instances dataSet = WekaHelper.toWekaDataSet(rule, labeledFeatureVectors);
-
-            dataSet.setClassIndex(2);
-            dataSet.enumerateAttributes();
 
             tree.buildClassifier(dataSet);
 
-            System.out.println(tree.toSummaryString());
+                        System.out.println(tree.toSummaryString());
             System.out.println(tree);
             System.out.println(tree.graph());
 
