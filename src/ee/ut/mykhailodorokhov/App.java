@@ -5,10 +5,10 @@ import ee.ut.mykhailodorokhov.data.Rule;
 import ee.ut.mykhailodorokhov.data.LabeledFeatureVector;
 import ee.ut.mykhailodorokhov.data.RuleSet;
 import ee.ut.mykhailodorokhov.file.EventLogParser;
+import ee.ut.mykhailodorokhov.helpers.FileDialogHelper;
 
-import java.awt.FileDialog;
-import java.awt.Frame;
 import java.io.File;
+import java.nio.file.NoSuchFileException;
 import java.util.Comparator;
 import java.util.List;
 
@@ -21,25 +21,25 @@ public class App {
      * @throws Exception
      */
     public static void main(String[] args) throws Exception {
-        File[] selectedFiles;
+        FileDialogHelper fileDialogHelper = new FileDialogHelper();
+        File selectedFile = null;
 
-        selectedFiles = openFile("Select Petri Net");
-        File selectedFile;
-
-        if (selectedFiles.length > 0) {
-            selectedFile = selectedFiles[0];
-        } else {
-            System.out.println("Aborted by user.");
+        try {
+            selectedFile = fileDialogHelper.openFile("Select Petri Net");
+        }
+        catch (NoSuchFileException ex) {
+            System.out.println(ex.getMessage());
             return;
         }
 
         EventLogParser parser = new EventLogParser();
-
         EventLog eventLog = null;
 
+        // Parse .xes file
         if (selectedFile.getName().contains(".xes"))
             eventLog = parser.fromXES(selectedFile);
 
+        // Parse .csv file
         if (selectedFile.getName().contains(".csv"))
             eventLog = parser.fromCSV(selectedFile);
 
@@ -56,15 +56,5 @@ public class App {
 
         // Classify
         engine.classify(rules, data);
-    }
-
-    private static File[] openFile(String message)
-    {
-        FileDialog loadDialog = new FileDialog(new Frame(), message, FileDialog.LOAD);
-
-        loadDialog.setMultipleMode(false);
-        loadDialog.setVisible(true);
-
-        return loadDialog.getFiles();
     }
 }

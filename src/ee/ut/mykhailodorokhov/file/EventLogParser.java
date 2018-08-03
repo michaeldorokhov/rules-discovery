@@ -5,20 +5,15 @@ import ee.ut.mykhailodorokhov.data.Event;
 import ee.ut.mykhailodorokhov.data.EventLog;
 import org.deckfour.xes.extension.std.XConceptExtension;
 import org.deckfour.xes.extension.std.XTimeExtension;
-import org.deckfour.xes.in.XUniversalParser;
 import org.deckfour.xes.in.XesXmlParser;
 import org.deckfour.xes.model.XAttributeMap;
 import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
-import org.deckfour.xes.out.XesXmlSerializer;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.text.SimpleDateFormat;
 import java.util.*;
 

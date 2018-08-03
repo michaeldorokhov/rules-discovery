@@ -3,21 +3,11 @@ package ee.ut.mykhailodorokhov;
 import ee.ut.mykhailodorokhov.data.*;
 import ee.ut.mykhailodorokhov.helpers.ListHelper;
 import ee.ut.mykhailodorokhov.helpers.WekaHelper;
-import weka.classifiers.Classifier;
 import weka.classifiers.trees.J48;
-import weka.core.Instance;
 import weka.core.Instances;
-import weka.core.converters.CSVLoader;
-import weka.core.converters.ConverterUtils;
-import weka.gui.treevisualizer.PlaceNode2;
-import weka.gui.treevisualizer.TreeVisualizer;
 
-import java.awt.*;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class OfflineRuleDiscoveryEngine {
@@ -58,7 +48,7 @@ public class OfflineRuleDiscoveryEngine {
                         // Alternate Response
                         if (!indexesB.isEmpty() &&
                                 indexesB.stream().anyMatch(x -> indexA < x) &&
-                                indexesA.stream().noneMatch(x -> indexA < x && x < ListHelper.min(indexesB))) {
+                                indexesA.stream().noneMatch(x -> indexA < x && x < ListHelper.minInteger(indexesB))) {
                             Rule newRule = new Rule(RuleEnum.ALTERNATE_RESPONSE, eventNameA, eventNameB);
                             rules.addRuleOccurence(newRule);
                         }
@@ -102,12 +92,12 @@ public class OfflineRuleDiscoveryEngine {
                             break;
                         case ALTERNATE_RESPONSE:
                             if (!indexesB.isEmpty() && indexesB.stream().anyMatch(x -> indexA < x) &&
-                                    indexesA.stream().noneMatch(x -> indexA < x && x < ListHelper.min(indexesB)))
+                                    indexesA.stream().noneMatch(x -> indexA < x && x < ListHelper.minInteger(indexesB)))
                                 labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), true));
 
                             if (indexesB.isEmpty() || indexesB.stream().noneMatch(x -> indexA < x) ||
                                     (indexesB.stream().anyMatch(x -> indexA < x) &&
-                                    indexesA.stream().anyMatch(x -> indexA < x && x < ListHelper.min(indexesB))))
+                                    indexesA.stream().anyMatch(x -> indexA < x && x < ListHelper.minInteger(indexesB))))
                                 labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), false));
                             break;
 
@@ -155,33 +145,22 @@ public class OfflineRuleDiscoveryEngine {
 
             StringBuilder options = new StringBuilder();
             //options.append("-U");
-            options.append("-M 7");
+            //options.append("-M 7");
             tree.setOptions(options.toString().split(" "));
 
             tree.buildClassifier(dataSet);
 
-                        System.out.println(tree.toSummaryString());
-            System.out.println(tree);
-            System.out.println(tree.graph());
+            System.out.println(tree.toString());
 
-            // display classifier
-            /*
-            final javax.swing.JFrame jf =
-                    new javax.swing.JFrame("Weka Classifier Tree Visualizer: J48");
-            jf.setSize(500,400);
-            jf.getContentPane().setLayout(new BorderLayout());
-            TreeVisualizer tv = new TreeVisualizer(null,
-                    tree.graph(),
-                    new PlaceNode2());
-            jf.getContentPane().add(tv, BorderLayout.CENTER);
-            jf.addWindowListener(new java.awt.event.WindowAdapter() {
-                public void windowClosing(java.awt.event.WindowEvent e) {
-                    jf.dispose();
-                }
-            });
+            List<ConditionVector> conditions = WekaHelper.parseJ48Tree(tree.toString());
 
-            jf.setVisible(true);
-            tv.fitToScreen();*/
+            if(conditions.size() > 2) {
+                conditions.get(0).optimizeConditions();
+            }
+
+            System.out.println("------------------");
+
+            // TODO: parse and get conditions from the tree
         }
     }
 }

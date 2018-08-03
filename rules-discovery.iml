@@ -7,8 +7,12 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="weka" level="project" />
     <orderEntry type="library" name="OpenXES-20171212" level="project" />
     <orderEntry type="library" name="guava-23.0" level="project" />
+    <orderEntry type="library" name="ctk" level="project" />
+    <orderEntry type="library" name="contexttoolkit-2.0" level="project" />
+    <orderEntry type="library" name="pentaho" level="project" />
+    <orderEntry type="library" name="weka" level="project" />
+    <orderEntry type="library" name="WekatextToXml" level="project" />
   </component>
 </module>
