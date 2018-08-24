@@ -7,13 +7,25 @@ import weka.classifiers.trees.J48;
 import weka.core.Instances;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
+
 public class OfflineRuleDiscoveryEngine {
 
-    public RuleSet discoverRules(EventLog log) {
-        return this.discoverRules(log, 3);
+    public void discoverConditionAwareRules(EventLog log) throws Exception{
+        // Discover rules
+        RuleSet rules = this.discoverRules(log, 5);
+
+        rules = new RuleSet(rules.getRulesSortedByFrequency());
+
+        // Extract labeled feature vectors
+        List<LabeledFeatureVector> data = this.extractLabeledFeatureVectors(log, rules);
+
+        // Define conditions for the rules
+        this.extractConditions(rules, data);
     }
 
     public RuleSet discoverRules(EventLog log, Integer minimumFrequency) {
@@ -53,7 +65,7 @@ public class OfflineRuleDiscoveryEngine {
                             rules.addRuleOccurence(newRule);
                         }
 
-                        // TODO: add other rules discovery
+                        // TODO: add other rules for discovery
                     }
                 }
             }
@@ -109,7 +121,7 @@ public class OfflineRuleDiscoveryEngine {
         return labeledFeatureVectors;
     }
 
-    public void classify(RuleSet rules, List<LabeledFeatureVector> labeledFeatureVectors) throws Exception {
+    public void extractConditions(RuleSet rules, List<LabeledFeatureVector> labeledFeatureVectors) throws Exception {
 
         // Debug related code
         int i = 0;
@@ -141,26 +153,62 @@ public class OfflineRuleDiscoveryEngine {
 
             dataSet.enumerateAttributes();
 
-            J48 tree = new J48();
-
             StringBuilder options = new StringBuilder();
             //options.append("-U");
             //options.append("-M 7");
-            tree.setOptions(options.toString().split(" "));
 
+            J48 tree = new J48();
+            tree.setOptions(options.toString().split(" "));
             tree.buildClassifier(dataSet);
 
             System.out.println(tree.toString());
 
-            List<ConditionVector> conditions = WekaHelper.parseJ48Tree(tree.toString());
+            List<Condition> conditions = new ArrayList<>();
 
-            if(conditions.size() > 2) {
-                conditions.get(0).optimizeConditions();
-            }
+            List<ConditionVector> conditionVectors = WekaHelper.parseJ48Tree(tree.toString());
+            conditionVectors.stream().
+                    filter(x -> x.getSupport() > 0.1 && x.isTrue()).
+                    forEach(x -> conditions.addAll(x.getConditions()));
+
+            List<Condition> prettyConditions = this.optimizeConditions(conditions);
 
             System.out.println("------------------");
 
             // TODO: parse and get conditions from the tree
         }
+    }
+
+    private List<Condition> optimizeConditions(List<Condition> conditions) {
+        List<Condition> optimizedConditions = new ArrayList<>();
+
+        List<Condition> numericUnequalities = this.getElementsOf(conditions, Double.class);
+        List<String> variables = numericUnequalities.stream().map(x -> x.getVariable()).distinct().collect(toList());
+        for (String variable : variables) {
+            List<Double> upperBounds = numericUnequalities.stream().
+                    filter(x -> x.getOperator().equals("<=") || x.getOperator().equals("<"))
+                    .map(x -> (Double)x.getValue()).collect(toList());
+
+            List<Double> lowerBounds = numericUnequalities.stream().
+                    filter(x -> x.getOperator().equals(">=") || x.getOperator().equals(">"))
+                    .map(x -> (Double)x.getValue()).collect(toList());
+
+            if (upperBounds.size() > 0) {
+                Double upperBound = ListHelper.minDouble(upperBounds);
+                optimizedConditions.add(new Condition(variable, "<=", upperBound));
+            }
+
+            if (lowerBounds.size() > 0) {
+                Double lowerBound = ListHelper.maxDouble(lowerBounds);
+                optimizedConditions.add(new Condition(variable, ">=", lowerBound));
+            }
+        }
+
+        return optimizedConditions;
+    }
+
+    private List<Condition> getElementsOf(List<Condition> list, Class type) {
+        return list.stream()
+                .filter(x -> x.getValue().getClass().equals(type))
+                .collect(toList());
     }
 }

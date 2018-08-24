@@ -3,24 +3,18 @@ package ee.ut.mykhailodorokhov.data;
 import java.util.Objects;
 
 public class Rule {
-    private RuleEnum ruleType;
+    protected RuleEnum ruleType;
 
-    private Integer frequency;
-
-    private String eventA;
-    private String eventB;
+    protected String eventA;
+    protected String eventB;
 
     public Rule(RuleEnum ruleType, String eventA, String eventB) {
         this.ruleType = ruleType;
-        this.frequency = 1;
         this.eventA = eventA;
         this.eventB = eventB;
     }
 
     public RuleEnum getRuleType() { return this.ruleType; }
-
-    public Integer getFrequency() { return this.frequency;  }
-    public void incrementFrequency() { this.frequency = this.frequency + 1; }
 
     public String getEventA() { return this.eventA; }
 

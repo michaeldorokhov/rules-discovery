@@ -47,24 +47,6 @@ public class ConditionVector {
 
     public List<Condition> getConditions() { return conditions; }
 
-    public void optimizeConditions() {
-        List<Condition> numericUnequalities = this.getElementsOf(this.conditions, Double.class);
-
-        List<String> variables = numericUnequalities.stream().map(x -> x.getVariable()).distinct().collect(toList());
-        for (String variable : variables) {
-            List<Double> upperBounds = numericUnequalities.stream().
-                    filter(x -> x.getOperator().equals("<=") || x.getOperator().equals("<"))
-                    .map(x -> (Double)x.getValue()).collect(toList());
-
-            List<Double> lowerBounds = numericUnequalities.stream().
-                    filter(x -> x.getOperator().equals(">=") || x.getOperator().equals(">"))
-                    .map(x -> (Double)x.getValue()).collect(toList());
-
-            Double upperBound = ListHelper.minDouble(upperBounds);
-            Double lowerBound = ListHelper.maxDouble(upperBounds);
-        }
-    }
-
     public Boolean isConditionless() {
         return this.conditions.size() == 0;
     }
@@ -95,12 +77,6 @@ public class ConditionVector {
         } catch (Exception e) {
             return false;
         }
-    }
-
-    private List<Condition> getElementsOf(List<Condition> list, Class type) {
-        return list.stream()
-               .filter(x -> x.getValue().getClass().equals(type))
-               .collect(toList());
     }
 
     @Override
