@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
-public class ConditionVector {
+public class TreeBranch {
     private List<Condition> conditions;
     private Boolean outcome;
 
@@ -17,14 +17,14 @@ public class ConditionVector {
     private Double misclassified;
     private Double support;
 
-    public ConditionVector() {
+    public TreeBranch() {
         this.conditions = new ArrayList<Condition>();
         this.total = 0.;
         this.misclassified = 0.;
         this.outcome = false;
     }
 
-    public ConditionVector(List<Condition> conditions) {
+    public TreeBranch(List<Condition> conditions) {
         this.conditions = new ArrayList<>(conditions);
         this.total = 0.;
         this.misclassified = 0.;
@@ -32,7 +32,7 @@ public class ConditionVector {
 
     }
 
-    public void add(String variable, String inequalityOperator, String value) {
+    public void addCondition(String variable, String inequalityOperator, String value) {
         if(this.isDouble(value)) {
             Double doubleValue = Double.parseDouble(value);
             this.conditions.add(new Condition<Double>(variable, inequalityOperator, doubleValue));
