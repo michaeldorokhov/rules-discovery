@@ -46,12 +46,12 @@ public class OfflineRuleDiscoveryEngine {
                     for(Integer indexA : indexesA) {
 
                         // Responded Existense
-                        if (indexesB.size() > 0) {
+                        if (!indexesB.isEmpty()) {
                             rules.addRuleOccurence(new Rule(RuleType.RESPONDED_EXISTENCE, eventNameA, eventNameB));
                         }
 
                         // Not Responded Existence
-                        if (indexesB.size() == 0) {
+                        if (indexesB.isEmpty()) {
                             rules.addRuleOccurence(new Rule(RuleType.NOT_RESPONDED_EXISTENCE, eventNameA, eventNameB));
                         }
 
@@ -117,7 +117,7 @@ public class OfflineRuleDiscoveryEngine {
 
                         // Alternate Precedence
                         if (indexesA.stream().anyMatch(x -> indexB > x) &&
-                            indexesB.stream().noneMatch(x -> indexB > x && x > ListHelper.maxInteger(indexesA))) {
+                            indexesB.stream().noneMatch(x -> ListHelper.maxInteger(indexesA) < x && x < indexB )) {
 
                             Rule newRule = new Rule(RuleType.ALTERNATE_PRECEDENCE, eventNameA, eventNameB);
                             rules.addRuleOccurence(newRule);
@@ -161,26 +161,26 @@ public class OfflineRuleDiscoveryEngine {
 
                             break;
                         case RESPONSE:
-                            if (!indexesB.isEmpty() && indexesB.stream().anyMatch(x -> indexA < x))
+                            if (indexesB.stream().anyMatch(x -> indexA < x))
                                 labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), true));
 
-                            if (indexesB.isEmpty() || indexesB.stream().noneMatch(x -> indexA < x))
+                            if (indexesB.stream().noneMatch(x -> indexA < x))
                                 labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), false));
 
                             break;
                         case NOT_RESPONSE:
-                            if (!indexesB.isEmpty() && indexesB.stream().noneMatch(x -> indexA < x))
+                            if (indexesB.stream().noneMatch(x -> indexA < x))
                                 labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), true));
 
-                            if (!indexesB.isEmpty() && indexesB.stream().anyMatch(x -> indexA < x))
+                            if (indexesB.stream().anyMatch(x -> indexA < x))
                                 labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), false));
 
                             break;
                         case CHAIN_RESPONSE:
-                            if (!indexesB.isEmpty() && indexesB.stream().anyMatch(x -> x == indexA + 1))
+                            if (indexesB.stream().anyMatch(x -> x == indexA + 1))
                                 labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), true));
 
-                            if (indexesB.isEmpty() || indexesB.stream().noneMatch(x -> x == indexA + 1))
+                            if (indexesB.stream().noneMatch(x -> x == indexA + 1))
                                 labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), false));
 
                             break;
@@ -188,19 +188,20 @@ public class OfflineRuleDiscoveryEngine {
                             if (indexesB.stream().noneMatch(x -> x == indexA + 1))
                                 labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), true));
 
-                            if (!indexesB.isEmpty() && indexesB.stream().anyMatch(x -> x == indexA + 1))
+                            if (indexesB.stream().anyMatch(x -> x == indexA + 1))
                                 labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), false));
 
                             break;
                         case ALTERNATE_RESPONSE:
-                            if (!indexesB.isEmpty() && indexesB.stream().anyMatch(x -> indexA < x) &&
+                            if (indexesB.stream().anyMatch(x -> indexA < x) &&
                                     indexesA.stream().noneMatch(x -> indexA < x && x < ListHelper.minInteger(indexesB)))
                                 labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), true));
 
-                            if (indexesB.isEmpty() || indexesB.stream().noneMatch(x -> indexA < x) ||
+                            if (indexesB.stream().noneMatch(x -> indexA < x) ||
                                     (indexesB.stream().anyMatch(x -> indexA < x) &&
                                     indexesA.stream().anyMatch(x -> indexA < x && x < ListHelper.minInteger(indexesB))))
                                 labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), false));
+
                             break;
                     }
                 }
@@ -242,12 +243,13 @@ public class OfflineRuleDiscoveryEngine {
                             break;
                         case ALTERNATE_PRECEDENCE:
                             if (indexesA.stream().anyMatch(x -> indexB > x) &&
-                                    indexesB.stream().noneMatch(x -> indexB > x && x > ListHelper.maxInteger(indexesA)))
+                                    indexesB.stream().noneMatch(x -> ListHelper.maxInteger(indexesA) < x && x < indexB ))
                                 labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexB).getPayload(), true));
 
-                            // TODO: Alternate precedence violation
-                            if (true)
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexB).getPayload(), true));
+                            if (indexesA.stream().noneMatch(x -> indexB > x) ||
+                                    (indexesA.stream().anyMatch(x -> indexB > x) &&
+                                    indexesB.stream().anyMatch(x -> ListHelper.maxInteger(indexesA) < x && x < indexB )))
+                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexB).getPayload(), false));
 
                             break;
                     }
