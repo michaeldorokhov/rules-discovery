@@ -79,7 +79,6 @@ public class Conditions {
                     });
 
             if (leftInnerBound.isPresent()) optimizedConditions.add(leftInnerBound.get());
-
         }
 
         return optimizedConditions;

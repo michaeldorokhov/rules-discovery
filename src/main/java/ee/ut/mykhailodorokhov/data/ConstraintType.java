@@ -1,6 +1,6 @@
 package ee.ut.mykhailodorokhov.data;
 
-public enum RuleType {
+public enum ConstraintType {
     RESPONDED_EXISTENCE,
     RESPONSE,
     PRECEDENCE,

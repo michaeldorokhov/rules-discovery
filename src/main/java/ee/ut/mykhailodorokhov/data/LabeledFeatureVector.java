@@ -3,17 +3,17 @@ package ee.ut.mykhailodorokhov.data;
 import java.util.Map;
 
 public class LabeledFeatureVector {
-    private Rule rule;
+    private Constraint constraint;
     private Map<String, String> attributes;
     private boolean outcome;
 
-    public LabeledFeatureVector(Rule rule, Map<String, String> attributes, boolean outcome) {
-        this.rule = rule;
+    public LabeledFeatureVector(Constraint constraint, Map<String, String> attributes, boolean outcome) {
+        this.constraint = constraint;
         this.attributes = attributes;
         this.outcome = outcome;
     }
 
-    public Rule getRule() { return this.rule; }
+    public Constraint getConstraint() { return this.constraint; }
 
     public Map<String, String> getAttributes() { return this.attributes; }
 
@@ -27,6 +27,6 @@ public class LabeledFeatureVector {
             attributesString.append(entry.getKey() + ":" + entry.getValue() + " ");
         }
 
-        return this.rule.toString() + " - { " + attributesString.toString() + "} - " + this.outcome;
+        return this.constraint.toString() + " - { " + attributesString.toString() + "} - " + this.outcome;
     }
 }

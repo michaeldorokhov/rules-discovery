@@ -11,27 +11,29 @@ import java.util.stream.Collectors;
 
 public class OfflineRuleDiscoveryEngine {
 
-    public RuleSet discoverConditionAwareRules(EventLog log) throws Exception{
-        // Discover rules
-        RuleSet rules = this.discoverRules(log, 5);
+    public DiscoveredConstraintList discoverConditionAwareRules(EventLog log) throws Exception{
+        // Discover all the possible constraints
+        DiscoveredConstraintList allDiscoveredConstraints = this.discoverConstraints(log);
 
-        // Sort rules by frequency for convinience
-        rules = new RuleSet(rules.getRulesSortedByFrequency());
+        // Filter constraints with the given relevance and sorting them by relevance for convinience
+        DiscoveredConstraintList discoveredConstraints = allDiscoveredConstraints.
+                getDiscoveredConstraintsWithMinimumRelevance(10).
+                getDiscoveredConstraintsSortedByRelevance();
 
-        // Extract labeled feature vectors
-        List<LabeledFeatureVector> data = this.extractLabeledFeatureVectors(log, rules);
+        // Extract labeled feature vectors from the log
+        List<LabeledFeatureVector> labeledFeatureVectors = this.extractLabeledFeatureVectors(log, discoveredConstraints);
 
-        // Discover conditions for the rules
-        this.extractConditions(rules, data);
+        // Discover conditions for the constraints
+        this.extractConditions(discoveredConstraints, labeledFeatureVectors);
 
-        return rules;
+        return discoveredConstraints;
     }
 
-    public RuleSet discoverRules(EventLog log, Integer minimumFrequency) {
-        List<Case> cases = log.getCases();
-        List<String> uniqueEventNames = log.getUniqueEventNames();
+    public DiscoveredConstraintList discoverConstraints(EventLog eventLog) {
+        List<Case> cases = eventLog.getCases();
+        List<String> uniqueEventNames = eventLog.getUniqueEventNames();
 
-        RuleSet rules = new RuleSet();
+        DiscoveredConstraintList discoveredConstraints = new DiscoveredConstraintList();
 
         for(Case caseInstance : cases) {
 
@@ -47,44 +49,46 @@ public class OfflineRuleDiscoveryEngine {
 
                         // Responded Existense
                         if (!indexesB.isEmpty()) {
-                            rules.addRuleOccurence(new Rule(RuleType.RESPONDED_EXISTENCE, eventNameA, eventNameB));
+                            discoveredConstraints.registerActivation(
+                                    new Constraint(ConstraintType.RESPONDED_EXISTENCE, eventNameA, eventNameB));
                         }
 
                         // Not Responded Existence
                         if (indexesB.isEmpty()) {
-                            rules.addRuleOccurence(new Rule(RuleType.NOT_RESPONDED_EXISTENCE, eventNameA, eventNameB));
+                            discoveredConstraints.registerActivation(
+                                    new Constraint(ConstraintType.NOT_RESPONDED_EXISTENCE, eventNameA, eventNameB));
                         }
 
                         // Response
                         if (indexesB.stream().anyMatch(x -> indexA < x)) {
-                            Rule newRule = new Rule(RuleType.RESPONSE, eventNameA, eventNameB);
-                            rules.addRuleOccurence(newRule);
+                            discoveredConstraints.registerActivation(
+                                    new Constraint(ConstraintType.RESPONSE, eventNameA, eventNameB));
                         }
 
                         // Not Response
                         if (indexesB.stream().noneMatch(x -> indexA < x)) {
-                            Rule newRule = new Rule(RuleType.NOT_RESPONSE, eventNameA, eventNameB);
-                            rules.addRuleOccurence(newRule);
+                            discoveredConstraints.registerActivation(
+                                    new Constraint(ConstraintType.NOT_RESPONSE, eventNameA, eventNameB));
                         }
 
                         // Chain Response
                         if (indexesB.stream().anyMatch(x -> x == indexA + 1)) {
-                            Rule newRule = new Rule(RuleType.CHAIN_RESPONSE, eventNameA, eventNameB);
-                            rules.addRuleOccurence(newRule);
+                            discoveredConstraints.registerActivation(
+                                    new Constraint(ConstraintType.CHAIN_RESPONSE, eventNameA, eventNameB));
                         }
 
                         // Not Chain Response
                         if (indexesB.stream().noneMatch(x -> x == indexA + 1)) {
-                            Rule newRule = new Rule(RuleType.NOT_CHAIN_RESPONSE, eventNameA, eventNameB);
-                            rules.addRuleOccurence(newRule);
+                            discoveredConstraints.registerActivation(
+                                    new Constraint(ConstraintType.NOT_CHAIN_RESPONSE, eventNameA, eventNameB));
                         }
 
                         // Alternate Response
                         if (indexesB.stream().anyMatch(x -> indexA < x) &&
                             indexesA.stream().noneMatch(x -> indexA < x && x < ListHelper.minInteger(indexesB))) {
 
-                            Rule newRule = new Rule(RuleType.ALTERNATE_RESPONSE, eventNameA, eventNameB);
-                            rules.addRuleOccurence(newRule);
+                            discoveredConstraints.registerActivation(
+                                    new Constraint(ConstraintType.ALTERNATE_RESPONSE, eventNameA, eventNameB));
                         }
                     }
 
@@ -93,164 +97,229 @@ public class OfflineRuleDiscoveryEngine {
 
                         // Precedence
                         if (indexesA.stream().anyMatch(x -> indexB > x)) {
-                            Rule newRule = new Rule(RuleType.PRECEDENCE, eventNameA, eventNameB);
-                            rules.addRuleOccurence(newRule);
+                            discoveredConstraints.registerActivation(
+                                    new Constraint(ConstraintType.PRECEDENCE, eventNameA, eventNameB));
                         }
 
                         // Not Precedence
                         if (indexesA.stream().noneMatch(x -> indexB > x)) {
-                            Rule newRule = new Rule(RuleType.NOT_PRECEDENCE, eventNameA, eventNameB);
-                            rules.addRuleOccurence(newRule);
+                            discoveredConstraints.registerActivation(
+                                    new Constraint(ConstraintType.NOT_PRECEDENCE, eventNameA, eventNameB));
                         }
 
                         // Chain Precedence
                         if (indexesA.stream().anyMatch(x -> x == indexB - 1)) {
-                            Rule newRule = new Rule(RuleType.CHAIN_PRECEDENCE, eventNameA, eventNameB);
-                            rules.addRuleOccurence(newRule);
+                            discoveredConstraints.registerActivation(
+                                    new Constraint(ConstraintType.CHAIN_PRECEDENCE, eventNameA, eventNameB));
                         }
 
                         // Not Chain Prevedence
                         if (indexesA.stream().noneMatch(x -> x == indexB - 1)) {
-                            Rule newRule = new Rule(RuleType.NOT_CHAIN_PRECEDENCE, eventNameA, eventNameB);
-                            rules.addRuleOccurence(newRule);
+                            discoveredConstraints.registerActivation(
+                                    new Constraint(ConstraintType.NOT_CHAIN_PRECEDENCE, eventNameA, eventNameB));
                         }
 
                         // Alternate Precedence
                         if (indexesA.stream().anyMatch(x -> indexB > x) &&
                             indexesB.stream().noneMatch(x -> ListHelper.maxInteger(indexesA) < x && x < indexB )) {
 
-                            Rule newRule = new Rule(RuleType.ALTERNATE_PRECEDENCE, eventNameA, eventNameB);
-                            rules.addRuleOccurence(newRule);
+                            discoveredConstraints.registerActivation(
+                                    new Constraint(ConstraintType.ALTERNATE_PRECEDENCE, eventNameA, eventNameB));
                         }
                     }
                 }
             }
         }
 
-        return new RuleSet(rules.getRulesWithMinimumFrequency(minimumFrequency));
+        return discoveredConstraints;
     }
 
-    public List<LabeledFeatureVector> extractLabeledFeatureVectors(EventLog log, RuleSet rules) {
+    public List<LabeledFeatureVector> extractLabeledFeatureVectors(EventLog log, DiscoveredConstraintList discoveredConstraint) {
 
         List<LabeledFeatureVector> labeledFeatureVectors = new ArrayList<>();
 
         for (Case caseInstance : log.getCases()) {
-            for (Rule rule : rules.getRules()) {
+            for (DiscoveredConstraint discoveredConstrain : discoveredConstraint.getDiscoveredConstraints()) {
 
-                List<Integer> indexesA = caseInstance.getEventIndexesList(rule.getEventA());
-                List<Integer> indexesB = caseInstance.getEventIndexesList(rule.getEventB());
+                List<Integer> indexesA = caseInstance.getEventIndexesList(discoveredConstrain.getEventA());
+                List<Integer> indexesB = caseInstance.getEventIndexesList(discoveredConstrain.getEventB());
 
                 // Rules that are activated by A
                 for (Integer indexA : indexesA) {
 
-                    switch(rule.getRuleType()){
+                    switch(discoveredConstrain.getConstraintType()){
                         case RESPONDED_EXISTENCE:
                             if (!indexesB.isEmpty())
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), true));
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexA).getPayload(),
+                                        true));
 
                             if (indexesB.isEmpty())
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), false));
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexA).getPayload(),
+                                        false));
 
                             break;
                         case NOT_RESPONDED_EXISTENCE:
                             if (indexesB.isEmpty())
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), true));
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexA).getPayload(),
+                                        true));
 
                             if (!indexesB.isEmpty())
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), false));
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexA).getPayload(),
+                                        false));
 
                             break;
                         case RESPONSE:
                             if (indexesB.stream().anyMatch(x -> indexA < x))
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), true));
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexA).getPayload(),
+                                        true));
 
                             if (indexesB.stream().noneMatch(x -> indexA < x))
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), false));
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexA).getPayload(),
+                                        false));
 
                             break;
                         case NOT_RESPONSE:
                             if (indexesB.stream().noneMatch(x -> indexA < x))
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), true));
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexA).getPayload(),
+                                        true));
 
                             if (indexesB.stream().anyMatch(x -> indexA < x))
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), false));
-
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexA).getPayload(),
+                                        false));
                             break;
                         case CHAIN_RESPONSE:
                             if (indexesB.stream().anyMatch(x -> x == indexA + 1))
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), true));
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexA).getPayload(),
+                                        true));
 
                             if (indexesB.stream().noneMatch(x -> x == indexA + 1))
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), false));
-
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexA).getPayload(),
+                                        false));
                             break;
                         case NOT_CHAIN_RESPONSE:
                             if (indexesB.stream().noneMatch(x -> x == indexA + 1))
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), true));
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexA).getPayload(),
+                                        true));
 
                             if (indexesB.stream().anyMatch(x -> x == indexA + 1))
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), false));
-
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexA).getPayload(),
+                                        false));
                             break;
                         case ALTERNATE_RESPONSE:
                             if (indexesB.stream().anyMatch(x -> indexA < x) &&
                                     indexesA.stream().noneMatch(x -> indexA < x && x < ListHelper.minInteger(indexesB)))
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), true));
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexA).getPayload(),
+                                        true));
 
                             if (indexesB.stream().noneMatch(x -> indexA < x) ||
                                     (indexesB.stream().anyMatch(x -> indexA < x) &&
                                     indexesA.stream().anyMatch(x -> indexA < x && x < ListHelper.minInteger(indexesB))))
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexA).getPayload(), false));
-
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexA).getPayload(),
+                                        false));
                             break;
                     }
                 }
 
                 // Rules that are activated by B
                 for(Integer indexB : indexesB) {
-                    switch(rule.getRuleType()) {
+                    switch(discoveredConstrain.getConstraintType()) {
                         case PRECEDENCE:
                             if (indexesA.stream().anyMatch(x -> indexB > x))
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexB).getPayload(), true));
-
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexB).getPayload(),
+                                        true));
                             if (indexesA.stream().noneMatch(x -> indexB > x))
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexB).getPayload(), false));
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexB).getPayload(),
+                                        false));
 
                             break;
                         case NOT_PRECEDENCE:
                             if (indexesA.stream().noneMatch(x -> indexB > x))
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexB).getPayload(), true));
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexB).getPayload(),
+                                        true));
 
                             if (indexesA.stream().anyMatch(x -> indexB > x))
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexB).getPayload(), false));
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexB).getPayload(),
+                                        false));
 
                             break;
                         case CHAIN_PRECEDENCE:
                             if (indexesA.stream().anyMatch(x -> x == indexB - 1))
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexB).getPayload(), true));
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexB).getPayload(),
+                                        true));
 
                             if (indexesA.stream().noneMatch(x -> x == indexB - 1))
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexB).getPayload(), false));
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexB).getPayload(),
+                                        true));
 
                             break;
                         case NOT_CHAIN_PRECEDENCE:
                             if (indexesA.stream().noneMatch(x -> x == indexB - 1))
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexB).getPayload(), true));
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexB).getPayload(),
+                                        true));
 
                             if (indexesA.stream().anyMatch(x -> x == indexB - 1))
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexB).getPayload(), false));
-
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexB).getPayload(),
+                                        false));
                             break;
                         case ALTERNATE_PRECEDENCE:
                             if (indexesA.stream().anyMatch(x -> indexB > x) &&
                                     indexesB.stream().noneMatch(x -> ListHelper.maxInteger(indexesA) < x && x < indexB ))
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexB).getPayload(), true));
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexB).getPayload(),
+                                        true));
 
                             if (indexesA.stream().noneMatch(x -> indexB > x) ||
                                     (indexesA.stream().anyMatch(x -> indexB > x) &&
                                     indexesB.stream().anyMatch(x -> ListHelper.maxInteger(indexesA) < x && x < indexB )))
-                                labeledFeatureVectors.add(new LabeledFeatureVector(rule, caseInstance.getEvents().get(indexB).getPayload(), false));
-
+                                labeledFeatureVectors.add(new LabeledFeatureVector(
+                                        discoveredConstrain.getConstraint(),
+                                        caseInstance.getEvents().get(indexB).getPayload(),
+                                        false));
                             break;
                     }
                 }
@@ -260,14 +329,13 @@ public class OfflineRuleDiscoveryEngine {
         return labeledFeatureVectors;
     }
 
-    public void extractConditions(RuleSet rules, List<LabeledFeatureVector> labeledFeatureVectors) throws Exception {
-        for(Rule rule : rules.getRules()) {
+    public void extractConditions(DiscoveredConstraintList rules, List<LabeledFeatureVector> labeledFeatureVectors) throws Exception {
+        for(DiscoveredConstraint constraint : rules.getDiscoveredConstraints()) {
 
-            List<LabeledFeatureVector> relevantFeatureVectors =
-                    labeledFeatureVectors.stream().filter(x -> x.getRule().equals(rule)).collect(Collectors.toList());
+            List<LabeledFeatureVector> relevantFeatureVectors = labeledFeatureVectors.stream().
+                    filter(x -> x.getConstraint().equals(constraint.getConstraint())).collect(Collectors.toList());
 
             Instances dataSet = null;
-
             try {
                 dataSet = WekaHelper.toWekaDataSet(relevantFeatureVectors);
             }
@@ -281,9 +349,8 @@ public class OfflineRuleDiscoveryEngine {
 
             dataSet.enumerateAttributes();
 
-            StringBuilder options = new StringBuilder();
-
             // Tree parameters
+            StringBuilder options = new StringBuilder();
             //options.append("-U");
             //options.append("-M 7");
 
@@ -291,17 +358,18 @@ public class OfflineRuleDiscoveryEngine {
             tree.setOptions(options.toString().split(" "));
             tree.buildClassifier(dataSet);
 
+            // Parsing J48 tree output
             List<Condition> conditions = new ArrayList<>();
-
             List<TreeBranch> treeBranches = WekaHelper.parseJ48Tree(tree.toString());
+
             treeBranches.stream().
                     filter(x -> x.getSupport() > 0.1 && x.isTrue()).
                     forEach(x -> conditions.addAll(x.getConditions()));
 
             List<Condition> prettyConditions = Conditions.optimizeConditions(conditions);
 
-            // adding discovered conditions to the rule
-            rule.setPrettyConditions(prettyConditions);
+            // Adding discovered and optimized conditions to the constraint
+            constraint.setPrettyConditions(prettyConditions);
         }
     }
 }
