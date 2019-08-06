@@ -35,7 +35,7 @@ public class Case {
     public String getFullCaseName() {
         String fullCaseName = "";
         for(int i=0; i < this.events.size(); i++) {
-            String separator = (i!=0)?"-":"";
+            String separator = (i!=0)?" -> ":"";
             fullCaseName = fullCaseName + separator + this.events.get(i).getName();
         }
 

@@ -35,7 +35,7 @@ public class DiscoveredConstraintList {
 
     public DiscoveredConstraintList getDiscoveredConstraintsWithMinimumRelevance(Integer minimumRelevance) {
         return new DiscoveredConstraintList(this.constraints.stream().
-                filter(x -> x.getRelevance() > minimumRelevance).
+                filter(x -> x.getRelevance() >= minimumRelevance).
                 collect(Collectors.toList()));
     }
 

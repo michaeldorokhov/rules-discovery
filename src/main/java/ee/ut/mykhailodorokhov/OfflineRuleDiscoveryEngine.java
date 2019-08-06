@@ -17,7 +17,7 @@ public class OfflineRuleDiscoveryEngine {
 
         // Filter constraints with the given relevance and sorting them by relevance for convinience
         DiscoveredConstraintList discoveredConstraints = allDiscoveredConstraints.
-                getDiscoveredConstraintsWithMinimumRelevance(10).
+                getDiscoveredConstraintsWithMinimumRelevance(2).
                 getDiscoveredConstraintsSortedByRelevance();
 
         // Extract labeled feature vectors from the log
@@ -351,7 +351,7 @@ public class OfflineRuleDiscoveryEngine {
 
             // Tree parameters
             StringBuilder options = new StringBuilder();
-            //options.append("-U");
+            options.append("-U");
             //options.append("-M 7");
 
             J48 tree = new J48();

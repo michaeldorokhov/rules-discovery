@@ -74,7 +74,8 @@ public class WekaHelper {
         Pattern nodePattern = Pattern.compile("(\\w+) ([><=]+) ([\\d\\w.]+)");
         Pattern leafPattern = Pattern.compile("(\\w+) ([><=]+) ([\\d\\w.]+):");
 
-        String[] splittedJ48TreeOutputStrings = J48TreeOutputString.split(System.getProperty("line.separator"));
+        //String[] splittedJ48TreeOutputStrings = J48TreeOutputString.split(System.getProperty("line.separator"));
+        String[] splittedJ48TreeOutputStrings = J48TreeOutputString.split("\n");
 
         // cut anything but the tree
         String[] J48TreeStrings =

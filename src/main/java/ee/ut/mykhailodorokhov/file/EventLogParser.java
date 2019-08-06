@@ -19,52 +19,57 @@ import java.util.*;
 
 public class EventLogParser {
 
-    private String splitCharacter = "[;,]";
+    private final String splitCharacter = "[;,]";
+    private final String dateFormat = "dd.MM.yy HH:mm";
 
+    /***
+     * Method for parsing a .csv (comma-separated values) event log file.
+     * Mostly used for debugging since .xes format is more widespread.
+     *
+     * The structure of a .csv file is based on the information from http://www.processmining.org/logs/csv
+     * It is assumed the file follows the next schema:
+     * case ID, event name, timestamp, attribute1, attribute2, ..., attributeN
+     *
+     * @param csvFile a comma-separated values file that will be parsed.
+     * @return an {@link ee.ut.mykhailodorokhov.data.EventLog} object.
+     * @throws Exception
+     */
     public EventLog fromCSV(File csvFile) throws Exception {
         FileReader fileReader = new FileReader(csvFile);
         BufferedReader bufferedReader = new BufferedReader(new FileReader(csvFile));
 
         // Reading header
-
         String[] header = bufferedReader.readLine().split(this.splitCharacter);
 
-        String dateFormat = header[2];
-
         List<String> attributeNames = new ArrayList<String>();
-        for( int i = 4; i < header.length; i++) attributeNames.add(header[i]);
+        for( int i = 3; i < header.length; i++) attributeNames.add(header[i]);
 
         // Reading the body of the CSV file
-
         Map<String, List<Event>> events = new HashMap<>();
 
-        String line;
-
         String caseID;
-        Integer eventID;
         String eventName;
         Date timestamp;
         Map<String, String> payload;
 
+        String line;
         while ((line = bufferedReader.readLine()) != null) {
             String[] caseString = line.split(this.splitCharacter);
 
             caseID = caseString[0];
+            eventName = caseString[1];
 
-            eventID = Integer.parseInt(caseString[1]);
-
-            SimpleDateFormat parser = new SimpleDateFormat(dateFormat);
+            SimpleDateFormat parser = new SimpleDateFormat(this.dateFormat);
             timestamp = parser.parse(caseString[2]);
 
-            eventName = caseString[3];
-
+            // Reading attribute values
             payload = new HashMap<>();
-            for( int i = 4; i < caseString.length; i++) payload.put(attributeNames.get(i-4), caseString[i]);
+            for( int i = 3; i < caseString.length; i++) payload.put(attributeNames.get(i-3), caseString[i]);
 
             if (events.containsKey(caseID)) {
-                events.get(caseID).add(new Event(eventID, eventName, payload, timestamp));
+                events.get(caseID).add(new Event(eventName, payload, timestamp));
             } else {
-                events.put(caseID, new ArrayList<>( Arrays.asList( new Event(eventID, eventName, payload, timestamp) ) ));
+                events.put(caseID, new ArrayList<>( Arrays.asList( new Event(eventName, payload, timestamp) ) ));
             }
         }
         fileReader.close();
@@ -118,7 +123,7 @@ public class EventLogParser {
                     }
                 }
 
-                events.add(new Event(1, eventName, payload, timestamp));
+                events.add(new Event(eventName, payload, timestamp));
             }
 
             cases.add(new Case(caseId, events));

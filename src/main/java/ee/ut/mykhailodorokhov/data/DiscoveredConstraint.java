@@ -44,10 +44,13 @@ public class DiscoveredConstraint {
     @Override
     public String toString() {
         StringBuilder conditionsString = new StringBuilder();
+        conditionsString.append(this.constraint.getConstraintType() +
+                "(" + this.constraint.getEventA() + ", " + this.constraint.getEventB());
+
         if(this.isConditionAware()) {
-            this.prettyConditions.forEach(x -> conditionsString.append(" | " + x.toString()));
+            this.prettyConditions.forEach(x -> conditionsString.append(", " + x.toString()));
         }
 
-        return this.constraint.toString() + conditionsString.toString();
+        return conditionsString.toString() + ")";
     }
 }

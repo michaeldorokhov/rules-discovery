@@ -19,7 +19,6 @@ public class Constraint {
 
     @Override
     public String toString() {
-        StringBuilder conditionsString = new StringBuilder();
         return this.constraintType.toString() + "(" + this.eventA + ", " + this.eventB + ")";
     }
 
